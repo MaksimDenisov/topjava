@@ -28,12 +28,15 @@
 <hr>
 
 <h2>Meals</h2>
+<a href="meals?action=create">Add Meal</a>
 <table style="border: 1px solid black;">
     <thead>
     <tr>
         <td>DateTime</td>
         <td>Description</td>
         <td>Calories</td>
+        <td>Update</td>
+        <td>Delete</td>
     </tr>
     </thead>
     <jsp:useBean id="meals" scope="request" type="java.util.List"/>
@@ -43,6 +46,8 @@
             <td>${f:formatLocalDateTime(meal.dateTime)}</td>
             <td>${meal.description}</td>
             <td>${meal.calories}</td>
+            <td><a href="meals?action=update&id=<c:out value="${meal.id}"/>">Update</a></td>
+            <td><a href="meals?action=delete&id=<c:out value="${meal.id}"/>">Delete</a></td>
         </tr>
     </c:forEach>
 </table>
