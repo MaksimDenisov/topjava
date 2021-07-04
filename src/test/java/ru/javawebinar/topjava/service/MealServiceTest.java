@@ -1,7 +1,14 @@
 package ru.javawebinar.topjava.service;
 
+import org.junit.AfterClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ContextConfiguration;
@@ -13,6 +20,9 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
@@ -26,9 +36,46 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 @RunWith(SpringRunner.class)
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class MealServiceTest {
+    public static final Logger logger = LoggerFactory.getLogger(MealServiceTest.class);
 
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    
     @Autowired
     private MealService service;
+
+    private static Map<String, Long> map = new HashMap<>();
+
+    @Rule
+    public final TestRule watchman = new TestWatcher() {
+        Long startTime;
+
+        @Override
+        protected void starting(Description description) {
+            startTime = System.nanoTime();
+        }
+
+        @Override
+        protected void finished(Description description) {
+            Long timeElapsed = TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+            map.put(description.getMethodName(), timeElapsed);
+            logger.debug(ANSI_PURPLE + "Test : " + description.getMethodName() + " finished : " + timeElapsed + ANSI_RESET);
+        }
+    };
+
+    @AfterClass
+    public static void afterClass() throws Exception {
+        long amount = 0;
+        logger.info(ANSI_PURPLE);
+        logger.info("===================================");
+        for (String key : map.keySet()) {
+            amount += map.get(key);
+            logger.debug("Test : " + key + " finished : " + map.get(key));
+        }
+        logger.info("===================================");
+        logger.info("Time elapsed : " + amount);
+        logger.info("===================================");
+    }
 
     @Test
     public void delete() {
